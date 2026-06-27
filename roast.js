@@ -1,37 +1,43 @@
-export default async (req, context) => {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed." }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    });
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+exports.handler = async function(event, context) {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Method not allowed." })
+    };
   }
 
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
   if (!GROQ_API_KEY) {
-    return new Response(JSON.stringify({ error: "API key tidak ditemukan." }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "API key tidak ditemukan di environment variables." })
+    };
   }
 
   let body;
   try {
-    body = await req.json();
+    body = JSON.parse(event.body);
   } catch {
-    return new Response(JSON.stringify({ error: "Request body tidak valid." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
+    return {
+      statusCode: 400,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Request body tidak valid." })
+    };
   }
 
   const { name, answers } = body;
 
   if (!name || !answers || !Array.isArray(answers)) {
-    return new Response(JSON.stringify({ error: "Data tidak lengkap." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
+    return {
+      statusCode: 400,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Data tidak lengkap." })
+    };
   }
 
   const answersText = answers
@@ -55,7 +61,7 @@ Tugas kamu:
 - Jangan terlalu formal, jangan pakai emoji berlebihan`;
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +77,11 @@ Tugas kamu:
 
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+      return {
+        statusCode: 502,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: err.error?.message || `Groq error: ${res.status}` })
+      };
     }
 
     const data = await res.json();
@@ -79,17 +89,17 @@ Tugas kamu:
 
     if (!roast) throw new Error("Respons kosong dari API.");
 
-    return new Response(JSON.stringify({ roast }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roast })
+    };
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: err.message })
+    };
   }
 };
-
-export const config = { path: "/api/roast" };
