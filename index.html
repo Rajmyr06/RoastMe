@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roast Me — Kalau Berani</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D0D0D;
+      --bg2: #141414;
+      --card: #1A1A1A;
+      --red: #FF3D3D;
+      --red-dim: #cc2e2e;
+      --white: #F5F5F5;
+      --gray: #888;
+      --border: #2a2a2a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 60px 0 40px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 8vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2px;
+    }
+
+    h1 span {
+      color: var(--red);
+      position: relative;
+    }
+
+    h1 span::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--red);
+      opacity: 0.4;
+    }
+
+    .subtitle {
+      margin-top: 16px;
+      color: var(--gray);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* SKELETON LOADING SOAL */
+    .skeleton-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+
+    .skeleton-block { display: flex; flex-direction: column; gap: 10px; }
+
+    .skeleton {
+      background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+
+    .skeleton-title { height: 16px; width: 80%; }
+    .skeleton-opt { height: 44px; width: 100%; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* FORM CARD */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .form-card.active { display: block; }
+
+    .name-section { margin-bottom: 32px; }
+
+    .field-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .name-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 14px 18px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .name-input::placeholder { color: #444; }
+    .name-input:focus { border-color: var(--red); }
+
+    .questions-section { display: flex; flex-direction: column; gap: 24px; }
+
+    .question-text {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .q-number {
+      font-family: 'Space Mono', monospace;
+      color: var(--red);
+      font-size: 12px;
+      margin-right: 6px;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 8px; }
+
+    .option-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--gray);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .option-btn:hover { border-color: #444; color: var(--white); }
+    .option-btn.selected {
+      background: rgba(255, 61, 61, 0.1);
+      border-color: var(--red);
+      color: var(--white);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    .roast-btn {
+      width: 100%;
+      background: var(--red);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .roast-btn:hover { background: var(--red-dim); }
+    .roast-btn:active { transform: scale(0.98); }
+    .roast-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
+
+    /* LOADING ROAST */
+    .loading-state {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+
+    .loading-state.active { display: block; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    /* RESULT */
+    .result-card {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .result-card.active { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .result-avatar {
+      width: 48px;
+      height: 48px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .result-name { font-weight: 700; font-size: 17px; }
+    .result-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--red);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .result-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    .roast-output {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #ddd;
+      min-height: 80px;
+      white-space: pre-wrap;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 16px;
+      background: var(--red);
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: #555; }
+
+    .btn-share {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--red);
+      border-radius: 10px;
+      color: var(--red);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-share:hover { background: rgba(255,61,61,0.08); }
+
+    footer {
+      text-align: center;
+      padding: 40px 0 60px;
+      color: #333;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--white);
+      color: var(--bg);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .error-msg {
+      background: rgba(255,61,61,0.08);
+      border: 1px solid rgba(255,61,61,0.3);
+      border-radius: 8px;
+      color: #ff8080;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      padding: 14px 16px;
+      margin-top: 16px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .error-msg.active { display: block; }
+
+    /* RETRY BUTTON */
+    .retry-btn {
+      display: none;
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--gray);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      padding: 12px;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .retry-btn:hover { border-color: #555; color: var(--white); }
+    .retry-btn.active { display: block; }
+
+    @media (max-width: 480px) {
+      .form-card, .result-card { padding: 24px 20px; }
+      h1 { letter-spacing: -1px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">🔥 AI Roast Generator</div>
+    <h1>Mau di-<span>Roast</span>?</h1>
+    <p class="subtitle">Jawab 5 pertanyaan absurd. AI bakal roast kamu<br>berdasarkan jawaban yang kamu pilih. Kalau berani.</p>
+  </header>
+
+  <!-- SKELETON saat soal loading -->
+  <div class="skeleton-wrap" id="skeletonWrap">
+    <div style="margin-bottom:8px;">
+      <div class="skeleton skeleton-title" style="width:40%;height:14px;margin-bottom:16px;"></div>
+      <div class="skeleton" style="height:52px;width:100%;border-radius:10px;"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid #2a2a2a;margin:4px 0;" />
+    <div class="skeleton-block">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+    </div>
+    <div class="skeleton-block">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+    </div>
+    <div class="skeleton-block">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-opt"></div>
+      <div class="skeleton skeleton-opt"></div>
+    </div>
+  </div>
+
+  <!-- FORM UTAMA -->
+  <div class="form-card" id="formCard">
+    <div class="name-section">
+      <span class="field-label">Nama kamu</span>
+      <input
+        type="text"
+        class="name-input"
+        id="nameInput"
+        placeholder="Tulis nama kamu..."
+        maxlength="30"
+        autocomplete="off"
+      />
+    </div>
+
+    <hr class="divider" />
+
+    <div class="questions-section" id="questionsSection"></div>
+
+    <hr class="divider" />
+
+    <button class="roast-btn" id="roastBtn" onclick="startRoast()">
+      Roast Gue 🔥
+    </button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- LOADING ROAST -->
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    <p class="loading-text">AI lagi mikirin roast yang pas buat kamu...</p>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div class="result-avatar" id="resultEmoji">🔥</div>
+      <div class="result-meta">
+        <div class="result-name" id="resultName">—</div>
+        <div class="result-tag">Sudah Diroast</div>
+      </div>
+    </div>
+    <hr class="result-divider" />
+    <div class="roast-output" id="roastOutput"></div>
+    <div class="action-row">
+      <button class="btn-secondary" onclick="resetForm()">Coba Lagi</button>
+      <button class="btn-share" onclick="copyRoast()">Salin & Share</button>
+    </div>
+  </div>
+
+  <footer>ROAST ME — NO FILTER, NO MERCY</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const emojis = ["🔥","💀","😂","👀","🤡","😭","⚡","🤦"];
+  let questions = [];
+  let selectedAnswers = {};
+
+  async function loadQuestions() {
+    try {
+      const res = await fetch('/api/generate-questions');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+      if (!data.questions || !Array.isArray(data.questions)) throw new Error("Format soal tidak valid.");
+
+      questions = data.questions;
+      buildQuestions();
+
+      document.getElementById('skeletonWrap').style.display = 'none';
+      document.getElementById('formCard').classList.add('active');
+
+    } catch (err) {
+      document.getElementById('skeletonWrap').innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <p style="font-family:'Space Mono',monospace;font-size:13px;color:#ff8080;">
+            Gagal memuat soal: ${err.message}
+          </p>
+          <button class="retry-btn active" onclick="retryLoad()" style="display:inline-block;margin-top:12px;padding:10px 24px;width:auto;">
+            Coba lagi
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  function retryLoad() {
+    document.getElementById('skeletonWrap').innerHTML = `
+      <div class="skeleton-block">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-opt"></div>
+        <div class="skeleton skeleton-opt"></div>
+      </div>
+    `;
+    loadQuestions();
+  }
+
+  function buildQuestions() {
+    const container = document.getElementById('questionsSection');
+    container.innerHTML = '';
+    selectedAnswers = {};
+
+    questions.forEach((q, qi) => {
+      const block = document.createElement('div');
+      block.className = 'question-block';
+      block.innerHTML = `
+        <div class="question-text">
+          <span class="q-number">0${qi + 1}</span>${q.text}
+        </div>
+        <div class="options" id="options-${qi}">
+          ${q.options.map((opt, oi) => `
+            <button class="option-btn" onclick="selectOption(${qi}, ${oi}, this)">
+              ${opt}
+            </button>
+          `).join('')}
+        </div>
+      `;
+      container.appendChild(block);
+
+      if (qi < questions.length - 1) {
+        const hr = document.createElement('hr');
+        hr.className = 'divider';
+        hr.style.margin = '20px 0';
+        container.appendChild(hr);
+      }
+    });
+  }
+
+  function selectOption(qi, oi, el) {
+    document.querySelectorAll(`#options-${qi} .option-btn`).forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedAnswers[qi] = {
+      question: questions[qi].text,
+      answer: questions[qi].options[oi]
+    };
+  }
+
+  async function startRoast() {
+    const name = document.getElementById('nameInput').value.trim();
+    const errorEl = document.getElementById('errorMsg');
+    errorEl.classList.remove('active');
+
+    if (!name) return showError("Isi dulu namamu.");
+    if (Object.keys(selectedAnswers).length < questions.length)
+      return showError("Jawab semua pertanyaan dulu, nggak ada yang boleh dilewat.");
+
+    setLoadingRoast(true);
+
+    try {
+      const res = await fetch('/api/roast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          answers: Object.values(selectedAnswers)
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+      if (!data.roast) throw new Error("Respons kosong.");
+
+      setLoadingRoast(false);
+      showResult(name, data.roast);
+
+    } catch (err) {
+      setLoadingRoast(false);
+      showError(`Gagal: ${err.message}`);
+    }
+  }
+
+  function setLoadingRoast(state) {
+    document.getElementById('formCard').style.display = state ? 'none' : 'block';
+    document.getElementById('loadingState').classList.toggle('active', state);
+    document.getElementById('resultCard').classList.remove('active');
+  }
+
+  function showResult(name, text) {
+    document.getElementById('resultName').textContent = name;
+    document.getElementById('resultEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    document.getElementById('resultCard').classList.add('active');
+    typewriterEffect(text);
+  }
+
+  function typewriterEffect(text) {
+    const el = document.getElementById('roastOutput');
+    el.innerHTML = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    el.appendChild(cursor);
+
+    let i = 0;
+    function type() {
+      if (i < text.length) {
+        el.insertBefore(document.createTextNode(text[i]), cursor);
+        i++;
+        setTimeout(type, 18);
+      } else {
+        setTimeout(() => cursor.remove(), 1200);
+      }
+    }
+    type();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('active');
+  }
+
+  async function resetForm() {
+    document.getElementById('resultCard').classList.remove('active');
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('skeletonWrap').style.display = 'block';
+    document.getElementById('skeletonWrap').innerHTML = `
+      <div class="skeleton-block">
+        <div class="skeleton skeleton-title" style="width:40%;height:14px;margin-bottom:16px;"></div>
+        <div class="skeleton" style="height:52px;width:100%;border-radius:10px;"></div>
+      </div>
+      <div class="skeleton-block">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-opt"></div>
+        <div class="skeleton skeleton-opt"></div>
+        <div class="skeleton skeleton-opt"></div>
+      </div>
+      <div class="skeleton-block">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-opt"></div>
+        <div class="skeleton skeleton-opt"></div>
+      </div>
+    `;
+    document.getElementById('nameInput').value = '';
+    document.getElementById('errorMsg').classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Generate soal baru lagi
+    await loadQuestions();
+  }
+
+  function copyRoast() {
+    const name = document.getElementById('resultName').textContent;
+    const roast = document.getElementById('roastOutput').textContent;
+    const text = `🔥 AI Roast untuk ${name}:\n\n${roast}\n\n— coba juga di roastme.netlify.app`;
+    navigator.clipboard.writeText(text).then(() => showToast("Disalin! Siap dishare 🔥"));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Init
+  loadQuestions();
+</script>
+</body>
+</html>
